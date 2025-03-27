@@ -2,20 +2,33 @@
 pragma solidity ^0.8.20;
 
 contract Voting {
-    mapping(string => uint256) public votes;
-    string[] public candidates;
+    struct Candidate {
+        string name;
+        uint votes;  
+    }
+
+    Candidate[] public candidates;
 
     function addCandidate(string memory _name) public {
-        candidates.push(_name);
-        votes[_name] = 0;
+        candidates.push(Candidate(_name, 0));
     }
 
     function vote(string memory _name) public {
-        require(votes[_name] > 0 || bytes(_name).length > 0, "Candidate does not exist");
-        votes[_name]++;
+        for (uint i = 0; i < candidates.length; i++) {
+            if (keccak256(bytes(candidates[i].name)) == keccak256(bytes(_name))) {
+                candidates[i].votes++;
+                return;
+            }
+        }
+        revert("Candidate does not exist");
     }
 
-    function getVotes(string memory _name) public view returns (uint256) {
-        return votes[_name];
+    function getVotes(string memory _name) public view returns (uint) {
+        for (uint i = 0; i < candidates.length; i++) {
+            if (keccak256(bytes(candidates[i].name)) == keccak256(bytes(_name))) {
+                return candidates[i].votes;
+            }
+        }
+        revert("Candidate not found");
     }
 }
